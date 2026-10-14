@@ -1,0 +1,25 @@
+# API
+fastapi==0.142.4
+uvicorn==0.54.0
+python-multipart==0.0.32
+
+# Vision (mediapipe needs the contrib build; don't also install opencv-python)
+mediapipe==1.1.0
+opencv-contrib-python==5.0.0.93
+numpy==2.5.3
+scipy==1.18.1
+
+# Audio: decoding + piano transcription (ByteDance CRNN, runs on MPS/CUDA/CPU)
+av==19.0.1
+torch==2.14.1
+torchlibrosa==0.1.0
+librosa==1.0.0
+audioread==3.1.0
+piano-transcription-inference==0.0.6
+
+# Scores
+mido==1.3.3
+music21==10.5.0
+
+# Tests
+pytest==9.1.1
