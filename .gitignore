@@ -1,0 +1,19 @@
+# Python
+backend/venv/
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Models & generated media (large binaries, re-downloaded/re-generated on demand)
+backend/models/
+backend/hand_landmarker.task
+backend/data/
+backend/processed_*.mp4
+
+# Node
+node_modules/
+frontend/dist/
+
+# OS / editor
+.DS_Store
+.idea/
