@@ -58,6 +58,27 @@ def _note_agreement(notes, tr, uv, km: KeyboardMap, shift=0.0):
   return hits / len(notes)
 
 
+ON_KEY_TOL = 0.5  # white-key widths: fingertip within half a key of the key's centre
+ON_KEY_WARN_PCT = 75
+
+
+def on_key_pct(notes, tr: Tracks, km: KeyboardMap):
+  """Strict check that highlighted keys match the hands: % of heard notes with a
+  fingertip within half a key of that key's centre. Only notes where some
+  fingertip is over the keyboard count (a hand out of view says nothing).
+  Returns (pct or None, number of notes considered)."""
+  uv = tips_uv(tr, km)
+  hits = considered = 0
+  for n in notes:
+    tips = uv[:, _frames_near(tr, n["onset"])].reshape(-1, 2)
+    tips = tips[np.isfinite(tips).all(1) & (tips[:, 1] > -0.2) & (tips[:, 1] < 1.25)]
+    if not len(tips):
+      continue
+    considered += 1
+    hits += np.min(np.abs(tips[:, 0] - km.key_center_u(n["pitch"]))) <= ON_KEY_TOL
+  return (round(100.0 * hits / considered, 1) if considered else None), considered
+
+
 def solve_calibration(cal: Calibration, tr: Tracks, notes) -> tuple[Calibration, dict]:
   """Use audio to fix the octave (and mirroring) of an auto-detected keyboard.
 
@@ -271,13 +292,20 @@ def compute_results(tr: Tracks, cal: Calibration, audio_notes, pedals, score, so
   solve_info = {"checked": False}
   if audio_notes:
     cal, solve_info = solve_calibration(cal, tr, audio_notes)
-    if solve_info.get("checked") and solve_info["agreement_pct"] < 40:
-      warnings.append("Few notes line up with a fingertip — check the keyboard calibration "
-                      "(corners, lowest key) or whether the camera moved.")
+    pct, considered = on_key_pct(audio_notes, tr.swapped() if cal.mirrored else tr,
+                                 KeyboardMap(cal, tr.width, tr.height))
+    solve_info["on_key_pct"] = pct
+    if pct is not None and considered >= 8 and pct < ON_KEY_WARN_PCT:
+      warnings.append(f"Only {pct:.0f}% of the notes heard had a fingertip on the matching key, so the "
+                      "keyboard calibration is probably off and highlighted keys may not match what you "
+                      "played. Check the corners and lowest key in the Keyboard tab.")
     if solve_info.get("suggestion"):
       sg = solve_info["suggestion"]
       warnings.append(f"Audio suggests the lowest key is {note_name(sg['first_white_midi'])}"
                       + (" with mirrored footage" if sg["mirrored"] else "") + ".")
+  if cal.source == "auto" and cal.pattern_fit < 0.95:
+    warnings.append(f"Keyboard detection was uncertain (black keys matched the piano pattern "
+                    f"{100 * cal.pattern_fit:.0f}%). Check the key labels in the Keyboard tab.")
   trk = tr.swapped() if cal.mirrored else tr
   km = KeyboardMap(cal, tr.width, tr.height)
 

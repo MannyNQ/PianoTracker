@@ -202,9 +202,9 @@ export default function SummaryPanel({ session, onSeek }) {
           <Stat label="Right hand" value={s.tracking.right.detected_pct} unit="%" sub={`+${s.tracking.right.interpolated_pct}% estimated`} />
           <Stat label="Both" value={s.tracking.both_hands_pct} unit="%" sub={`${s.tracking.fps} fps`} />
         </div>
-        {s.calibration_check?.checked && (
-          <p className="mt-2 text-[11px] text-ink-400">
-            {s.calibration_check.agreement_pct}% of heard notes had a fingertip on the matching key.
+        {s.calibration_check?.on_key_pct != null && (
+          <p className={`mt-2 text-[11px] ${s.calibration_check.on_key_pct < 75 ? 'text-warn' : 'text-ink-400'}`}>
+            {s.calibration_check.on_key_pct}% of heard notes had a fingertip on the matching key.
           </p>
         )}
       </Section>

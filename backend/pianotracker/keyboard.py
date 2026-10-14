@@ -78,6 +78,7 @@ class Calibration:
   black_depth: float = 0.62  # black keys extend from v=0 to v=black_depth
   mirrored: bool = False
   confidence: float = 0.0  # auto-detection confidence 0..1 (1 = user-confirmed)
+  pattern_fit: float = 1.0  # share of detected black keys that fit the piano pattern
   source: str = "default"  # "auto" | "user" | "default"
   notes: list = field(default_factory=list)  # human-readable detection notes
 
@@ -261,11 +262,17 @@ def detect_keyboard(bgr: np.ndarray) -> Calibration | None:
   if len(centers) < 5:
     return None
   d = np.diff(centers)
-  small = d[d < 1.5 * np.min(d) + 1e-6]
-  W = float(np.median(small))  # white key width ~ spacing inside a group
-
-  # Integer boundary index for each black key.
-  k = np.concatenate([[0], np.cumsum(np.round(d / W))]).astype(int)
+  # Spacings come in two clusters: inside a group (~1.1-1.16 white keys) and
+  # across E-F / B-C (~1.8). Split at the largest jump in sorted spacings.
+  ds = np.sort(d)
+  j = int(np.argmax(np.diff(ds)))
+  # Any 5+ consecutive black keys include a wide gap, so both clusters exist;
+  # if they aren't clearly separated the measurement is too noisy to trust.
+  if ds[j + 1] < 1.25 * ds[j]:
+    return None
+  split = (ds[j] + ds[j + 1]) / 2
+  steps = np.where(d > split, 2, 1)
+  k = np.concatenate([[0], np.cumsum(steps)]).astype(int)
   # 4. find the pattern phase: boundary b (between white keys b-1 and b) has a
   # black key iff (b - p) mod 7 is in {1,2,4,5,6}, where white key p is a C.
   # The pattern is mirror-symmetric, so mirrored footage can't be told apart
@@ -281,8 +288,11 @@ def detect_keyboard(bgr: np.ndarray) -> Calibration | None:
   (x0, W), *_ = np.linalg.lstsq(A, centers, rcond=None)
 
   # Visible white keys (white key i spans x0 + W*[i, i+1]): >=35% in frame.
-  vis = [i for i in range(int(np.floor(-x0 / W)) - 2, int(np.ceil((w - x0) / W)) + 2)
-         if min(x0 + W * (i + 1), w) - max(x0 + W * i, 0.0) >= 0.35 * W]
+  cols = (gray[wy0:wy1] > thr).mean(axis=0) > 0.5  # columns that are white-key surface
+  xs = np.where(cols)[0]
+  left, right = (float(xs[0]), float(xs[-1] + 1)) if xs.size else (0.0, float(w))
+  vis = [i for i in range(int(np.floor((left - x0) / W)) - 2, int(np.ceil((right - x0) / W)) + 2)
+         if min(x0 + W * (i + 1), right) - max(x0 + W * i, left) >= 0.35 * W]
   if len(vis) < 7:
     return None
   i0, i1 = vis[0], vis[-1]
@@ -314,6 +324,7 @@ def detect_keyboard(bgr: np.ndarray) -> Calibration | None:
       num_white=int(i1 - i0 + 1),
       black_depth=round(black_depth, 3),
       confidence=round(conf, 3),
+      pattern_fit=round(float(score), 3),
       source="auto",
       notes=notes,
   )
