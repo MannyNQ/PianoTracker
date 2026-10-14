@@ -4,7 +4,7 @@
 import { KeyboardMap, noteName, isWhite, whiteIndexToMidi } from './keyboard';
 import { activeNotes, handAt, STATUS_COLORS } from './session';
 
-export const HAND_COLORS = { L: '#7cc8ff', R: '#f0b65e' };
+export const HAND_COLORS = { L: '#7aa7ff', R: '#ff6a2c' };
 const BONES = [
   [0, 1], [1, 2], [2, 3], [3, 4],
   [0, 5], [5, 6], [6, 7], [7, 8],
@@ -54,7 +54,7 @@ function drawHand(ctx, W, H, hand, pose, unit, episode, t) {
   ctx.stroke();
   ctx.setLineDash([]);
   // joints
-  ctx.fillStyle = '#0b0d12';
+  ctx.fillStyle = '#000';
   for (let i = 1; i < 21; i++) {
     if (TIPS.includes(i)) continue;
     const [x, y] = P(i);
@@ -91,12 +91,12 @@ function drawHand(ctx, W, H, hand, pose, unit, episode, t) {
   ctx.fill();
   if (bad) {
     const label = episode.kind === 'wrist_sag' ? 'WRIST SAG' : 'HAND ANGLE';
-    ctx.font = `600 ${unit * 5}px ui-sans-serif, system-ui`;
+    ctx.font = `500 ${unit * 5}px "Geist Mono Variable", ui-monospace, monospace`;
     const tw = ctx.measureText(label).width;
     const bx = wx + unit * 10;
     const by = wy - unit * 4;
     roundRect(ctx, bx, by - unit * 5, tw + unit * 6, unit * 8, unit * 4);
-    ctx.fillStyle = 'rgba(40,10,12,0.85)';
+    ctx.fillStyle = 'rgba(30,6,6,0.85)';
     ctx.fill();
     ctx.strokeStyle = rgba('#ff6b6b', 0.8);
     ctx.lineWidth = unit * 0.8;
@@ -123,25 +123,25 @@ export function drawOverlay(ctx, W, H, opts) {
   if (calibrating) {
     for (const k of km.keys()) {
       poly(ctx, km.keyPoly(k.midi));
-      ctx.fillStyle = k.white ? 'rgba(232,180,90,0.06)' : 'rgba(124,200,255,0.18)';
+      ctx.fillStyle = k.white ? 'rgba(255,255,255,0.04)' : 'rgba(255,106,44,0.16)';
       ctx.fill();
       ctx.lineWidth = unit * 0.8;
-      ctx.strokeStyle = k.white ? 'rgba(232,180,90,0.7)' : 'rgba(124,200,255,0.8)';
+      ctx.strokeStyle = k.white ? 'rgba(255,255,255,0.6)' : 'rgba(255,106,44,0.85)';
       ctx.stroke();
     }
-    ctx.font = `600 ${unit * 5.5}px ui-sans-serif, system-ui`;
+    ctx.font = `500 ${unit * 5.5}px "Geist Mono Variable", ui-monospace, monospace`;
     ctx.textAlign = 'center';
     for (let i = 0; i < cal.num_white; i++) {
       const m = whiteIndexToMidi(cal.first_white_midi, i);
       if (m % 12 !== 0 && i !== 0) continue;
       const [x, y] = km.toImage(i + 0.5, 0.88);
-      ctx.fillStyle = m === 60 ? '#e8b45a' : '#0b0d12';
+      ctx.fillStyle = m === 60 ? '#ff6a2c' : '#0a0a0a';
       ctx.fillText(noteName(m), x, y);
     }
   } else if (showKeys) {
     poly(ctx, cal.quad.map(([x, y]) => [x * W, y * H]));
     ctx.lineWidth = unit * 0.8;
-    ctx.strokeStyle = 'rgba(232,180,90,0.28)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
     ctx.stroke();
   }
   ctx.restore();
@@ -193,7 +193,7 @@ export function drawOverlay(ctx, W, H, opts) {
     const recent = activeNotes(session, t, 0.9)
       .filter((n) => t - n.onset < 0.9)
       .sort((p, q) => p.onset - q.onset);
-    ctx.font = `600 ${unit * 6}px ui-sans-serif, system-ui`;
+    ctx.font = `500 ${unit * 6}px "Geist Mono Variable", ui-monospace, monospace`;
     const boxH = unit * 9.5;
     const placed = [];
     for (const n of recent) {
@@ -211,7 +211,7 @@ export function drawOverlay(ctx, W, H, opts) {
       const color = STATUS_COLORS[n.status || 'none'];
       ctx.globalAlpha = Math.max(0, 1 - age / 0.9);
       roundRect(ctx, x - bw / 2, y - unit * 6.5, bw, boxH, unit * 4.75);
-      ctx.fillStyle = 'rgba(11,13,18,0.82)';
+      ctx.fillStyle = 'rgba(0,0,0,0.78)';
       ctx.fill();
       ctx.lineWidth = unit;
       ctx.strokeStyle = color;
@@ -226,10 +226,10 @@ export function drawOverlay(ctx, W, H, opts) {
     cal.quad.forEach(([x, y], i) => {
       ctx.beginPath();
       ctx.arc(x * W, y * H, unit * (activeCorner === i ? 9 : 7), 0, Math.PI * 2);
-      ctx.fillStyle = activeCorner === i ? '#e8b45a' : 'rgba(11,13,18,0.85)';
+      ctx.fillStyle = activeCorner === i ? '#ff6a2c' : 'rgba(0,0,0,0.85)';
       ctx.fill();
       ctx.lineWidth = unit * 2;
-      ctx.strokeStyle = '#e8b45a';
+      ctx.strokeStyle = '#ff6a2c';
       ctx.stroke();
     });
   }

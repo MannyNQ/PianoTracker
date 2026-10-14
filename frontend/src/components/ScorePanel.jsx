@@ -9,14 +9,14 @@ export default function ScorePanel({ session, onUpload, onClear, busy }) {
   return (
     <div className="space-y-4">
       {score ? (
-        <div className="flex items-center gap-3 rounded-xl border hairline bg-ink-900/50 p-3">
-          <FileMusic className="h-5 w-5 text-gold" />
+        <div className="flex items-center gap-3 rounded-lg border hairline bg-white/[0.02] p-3">
+          <FileMusic className="h-4 w-4 text-ink-300" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm">{score.title}</div>
             <div className="flex items-center gap-1.5 text-xs text-ink-400">
               {score.notes.length} notes
               {score.source === 'omr' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] text-gold">
+                <span className="inline-flex items-center gap-1 rounded border border-accent/30 px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-wider text-accent">
                   <ScanLine className="h-2.5 w-2.5" /> read from sheet music
                 </span>
               )}
@@ -46,12 +46,12 @@ export default function ScorePanel({ session, onUpload, onClear, busy }) {
       <button
         onClick={() => input.current?.click()}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm ring-1 ring-white/10 hover:bg-white/5 disabled:opacity-50"
+        className="btn-ghost w-full px-4 py-2.5 text-sm"
       >
         <Upload className="h-4 w-4" />
         {busy ? (reading ? 'Reading sheet music…' : 'Scoring…') : score ? 'Replace score' : 'Upload score'}
       </button>
-      <div className="rounded-xl border hairline p-3 text-xs leading-relaxed text-ink-400">
+      <div className="rounded-lg border hairline p-3 text-xs leading-relaxed text-ink-400">
         <p className="mb-1 text-ink-200">How grading works</p>
         Your notes are aligned to the score note by note, so a partial run-through is fine: only the section you
         reached is graded. Timing is measured against your own tempo, so expressive rubato isn't counted as error.

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FileMusic, Film, Sparkles, X } from 'lucide-react';
+import { ArrowRight, FileMusic, Film, X } from 'lucide-react';
 import { SCORE_ACCEPT } from '../lib/formats';
 
 function DropZone({ accept, file, onFile, icon: Icon, title, hint, optional }) {
@@ -19,8 +19,8 @@ function DropZone({ accept, file, onFile, icon: Icon, title, hint, optional }) {
         const f = e.dataTransfer.files?.[0];
         if (f) onFile(f);
       }}
-      className={`group relative cursor-pointer rounded-2xl border border-dashed p-6 transition ${
-        over ? 'border-gold bg-gold/5' : file ? 'border-gold/40 bg-ink-850' : 'hairline bg-ink-900/60 hover:border-gold/50'
+      className={`group flex cursor-pointer items-center gap-4 px-5 py-5 transition ${
+        over ? 'bg-white/[0.05]' : 'hover:bg-white/[0.025]'
       }`}
     >
       <input
@@ -30,58 +30,70 @@ function DropZone({ accept, file, onFile, icon: Icon, title, hint, optional }) {
         className="hidden"
         onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
       />
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ink-800 text-gold ring-1 ring-white/5">
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{title}</span>
-            {optional && <span className="label !text-[9.5px] !text-ink-400">optional</span>}
-          </div>
-          <div className="truncate text-sm text-ink-300">{file ? file.name : hint}</div>
-        </div>
-        {file && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onFile(null);
-            }}
-            className="rounded-lg p-1.5 text-ink-400 hover:bg-white/5 hover:text-ivory"
-            aria-label="Remove file"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border hairline ${
+          file ? 'text-accent' : 'text-ink-300 group-hover:text-ivory'
+        }`}
+      >
+        <Icon className="h-4 w-4" />
       </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 text-[15px]">
+          {title}
+          {optional && <span className="label !text-[9.5px] !text-ink-400">Optional</span>}
+        </div>
+        <div className={`truncate text-sm ${file ? 'text-ivory/80' : 'text-ink-400'}`}>{file ? file.name : hint}</div>
+      </div>
+      {file ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onFile(null);
+          }}
+          className="rounded-md p-1.5 text-ink-400 hover:bg-white/5 hover:text-ivory"
+          aria-label="Remove file"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      ) : (
+        <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-400 group-hover:text-ink-200">
+          Browse
+        </span>
+      )}
     </div>
   );
 }
+
+const TIPS = [
+  ['Camera', 'Above the keys, with the section you play in frame.'],
+  ['Sound', 'Keep it on: audio makes note detection exact.'],
+  ['Light', 'Even light; keep wrists visible.'],
+];
 
 export default function UploadView({ health, onStart, error }) {
   const [video, setVideo] = useState(null);
   const [score, setScore] = useState(null);
   return (
     <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-center px-6 py-16">
-      <div className="rise mb-10 text-center">
-        <div className="label mb-4 !text-gold">Performance analysis</div>
-        <h1 className="font-display text-5xl leading-tight tracking-tight">
-          See every note <span className="italic text-gold-soft">you play.</span>
+      <div className="rise mb-10">
+        <div className="label mb-5">New session</div>
+        <h1 className="text-[2.75rem] font-medium leading-[1.05] tracking-[-0.03em]">
+          Analyze a performance.
         </h1>
-        <p className="mx-auto mt-4 max-w-lg text-ink-300">
-          Upload a recording of your playing. We track both hands, hear each note, and grade it against your
-          score: accuracy, timing, fingering and posture.
+        <p className="mt-4 max-w-lg text-ink-300">
+          Add a recording of your playing and, optionally, the score you were reading from. You'll get a tracked,
+          graded replay in a minute or two.
         </p>
       </div>
 
-      <div className="glass rise space-y-3 rounded-3xl p-5" style={{ animationDelay: '80ms' }}>
+      <div className="panel rise divide-y divide-white/[0.08] overflow-hidden rounded-xl" style={{ animationDelay: '80ms' }}>
         <DropZone
           accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
           file={video}
           onFile={setVideo}
           icon={Film}
           title="Performance video"
-          hint="Overhead or high angle, keyboard in frame, with sound"
+          hint="MP4, MOV or WebM, with sound"
         />
         <DropZone
           accept={SCORE_ACCEPT}
@@ -89,32 +101,35 @@ export default function UploadView({ health, onStart, error }) {
           onFile={setScore}
           icon={FileMusic}
           title="Score sheet"
-          hint="PDF, photo, MIDI or MusicXML: enables accuracy & timing grading"
+          hint="PDF, photo, MIDI or MusicXML: enables grading"
           optional
         />
-        {error && (
-          <div className="rounded-xl border border-bad/30 bg-bad/10 px-4 py-3 text-sm text-red-200">{error}</div>
-        )}
+      </div>
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-bad/30 bg-bad/5 px-4 py-3 text-sm text-red-200">{error}</div>
+      )}
+
+      <div className="rise mt-5 flex items-center justify-between gap-4" style={{ animationDelay: '140ms' }}>
+        <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-400">
+          {!health?.ok ? 'Waiting for the engine…' : video ? 'Ready' : 'Add a video to begin'}
+        </span>
         <button
           disabled={!video || !health?.ok}
           onClick={() => onStart(video, score)}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gold py-3.5 font-semibold text-ink-950 shadow-[0_10px_30px_-10px_rgba(232,180,90,0.6)] transition hover:bg-gold-soft disabled:cursor-not-allowed disabled:bg-ink-700 disabled:text-ink-400 disabled:shadow-none"
+          className="btn-primary px-5 py-2.5 text-sm"
         >
-          <Sparkles className="h-4 w-4" />
-          Analyze performance
+          Analyze <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
-      <ul className="rise mt-8 grid grid-cols-3 gap-3 text-xs text-ink-300" style={{ animationDelay: '160ms' }}>
-        <li className="rounded-xl border hairline p-3">
-          <span className="text-ivory">Camera</span> above the keys; the whole keyboard section you play in view.
-        </li>
-        <li className="rounded-xl border hairline p-3">
-          <span className="text-ivory">Sound on.</span> Audio is what makes note detection exact.
-        </li>
-        <li className="rounded-xl border hairline p-3">
-          <span className="text-ivory">Good light,</span> hands visible; avoid sleeves covering wrists.
-        </li>
+      <ul className="rise mt-14 grid gap-6 border-t hairline pt-6 sm:grid-cols-3" style={{ animationDelay: '200ms' }}>
+        {TIPS.map(([k, v]) => (
+          <li key={k}>
+            <div className="label mb-1.5">{k}</div>
+            <p className="text-sm text-ink-300">{v}</p>
+          </li>
+        ))}
       </ul>
     </div>
   );

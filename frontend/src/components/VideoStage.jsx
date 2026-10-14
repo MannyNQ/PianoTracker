@@ -119,7 +119,7 @@ export default function VideoStage({
   return (
     <div
       ref={wrap}
-      className="relative mx-auto w-full overflow-hidden rounded-2xl bg-black ring-1 ring-white/5"
+      className="relative mx-auto w-full overflow-hidden rounded-xl border hairline bg-black"
       style={{ aspectRatio: aspect, maxWidth: `calc(64vh * ${aspect})` }}
     >
       <video

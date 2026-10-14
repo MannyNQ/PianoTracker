@@ -1,4 +1,4 @@
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const STAGES = [
   ['sheet', 'Reading sheet music'],
@@ -13,39 +13,43 @@ export default function ProgressView({ status, fileName, onCancel, withSheet }) 
   const current = stages.findIndex(([k]) => k === status?.stage);
   const pct = Math.round(100 * (status?.progress || 0));
   return (
-    <div className="mx-auto flex min-h-full max-w-md flex-col justify-center px-6 py-16">
-      <div className="glass rise rounded-3xl p-8">
-        <div className="label mb-2">Analyzing</div>
-        <div className="mb-6 truncate font-display text-2xl">{fileName}</div>
-        <div className="mb-2 flex items-end justify-between">
-          <span className="text-sm text-ink-300">{status?.message || 'Uploading…'}</span>
-          <span className="tnum font-mono text-sm text-gold">{pct}%</span>
+    <div className="mx-auto flex min-h-full max-w-xl flex-col justify-center px-6 py-16">
+      <div className="rise">
+        <div className="label mb-5">Analyzing</div>
+        <div className="mb-10 flex items-end justify-between gap-6">
+          <h1 className="min-w-0 truncate text-3xl font-medium tracking-[-0.02em]">{fileName}</h1>
+          <span className="tnum font-mono text-5xl font-light leading-none tracking-tight">
+            {pct}
+            <span className="text-xl text-ink-400">%</span>
+          </span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-ink-700">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-gold to-gold-soft transition-[width] duration-500"
-            style={{ width: `${Math.max(2, pct)}%` }}
-          />
+        <div className="h-px overflow-hidden bg-white/10">
+          <div className="h-full bg-ivory transition-[width] duration-500" style={{ width: `${Math.max(1, pct)}%` }} />
         </div>
-        <ol className="mt-6 space-y-2.5">
+        <div className="mt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-400">
+          {status?.message || 'Uploading…'}
+        </div>
+
+        <ol className="mt-10 divide-y divide-white/[0.06] border-y hairline">
           {stages.map(([key, label], i) => {
             const done = current > i || status?.stage === 'done';
             const active = current === i;
             return (
-              <li key={key} className={`flex items-center gap-3 text-sm ${done || active ? 'text-ivory' : 'text-ink-400'}`}>
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full ring-1 ${
-                    done ? 'bg-good/15 text-good ring-good/40' : active ? 'text-gold ring-gold/50' : 'ring-white/10'
-                  }`}
-                >
-                  {done ? <Check className="h-3 w-3" /> : active ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              <li key={key} className="flex items-center justify-between py-3 text-sm">
+                <span className="flex items-center gap-4">
+                  <span className="font-mono text-[11px] text-ink-400">{String(i + 1).padStart(2, '0')}</span>
+                  <span className={done || active ? 'text-ivory' : 'text-ink-400'}>{label}</span>
                 </span>
-                {label}
+                {done ? (
+                  <Check className="h-4 w-4 text-ink-300" />
+                ) : active ? (
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+                ) : null}
               </li>
             );
           })}
         </ol>
-        <button onClick={onCancel} className="mt-8 text-sm text-ink-400 hover:text-ivory">
+        <button onClick={onCancel} className="mt-8 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-400 hover:text-ivory">
           Cancel
         </button>
       </div>

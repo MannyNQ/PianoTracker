@@ -101,8 +101,15 @@ class JobManager:
 
   # ---- pipeline
   def _progress(self, job_id, stage, frac, message=None):
+    # Shares are renormalised over the stages this job actually runs (the
+    # sheet-music stage only happens for PDF/image scores).
+    with self._lock:
+      sheet = self._jobs.get(job_id, {}).get("with_sheet", False)
+    stages = [st for st in STAGES if sheet or st[0] != "sheet"]
+    total = sum(share for _, _, share in stages)
     done = 0.0
-    for name, label, share in STAGES:
+    for name, label, share in stages:
+      share /= total
       if name == stage:
         self._set(job_id, stage=stage, message=message or label,
                   progress=round(done + share * min(max(frac, 0), 1), 3))
@@ -112,7 +119,7 @@ class JobManager:
   def _run(self, job_id, video_path, score_path, calibration):
     d = self.job_dir(job_id)
     try:
-      self._set(job_id, status="running")
+      self._set(job_id, status="running", with_sheet=bool(score_path and needs_omr(score_path)))
       score, score_error = None, None
       if score_path:
         if needs_omr(score_path):

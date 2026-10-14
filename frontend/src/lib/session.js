@@ -3,11 +3,11 @@
 export const FINGER_NAMES = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
 
 export const STATUS_COLORS = {
-  correct: '#5fd3a5',
-  wrong: '#ff6b6b',
-  extra: '#b08cff',
-  missed: '#ffb547',
-  none: '#e8d9b5',
+  correct: '#6ee7a8',
+  wrong: '#ff5c5c',
+  extra: '#a78bfa',
+  missed: '#f5b84a',
+  none: '#f2f2f2',
 };
 
 /** Index of the last element with key(el) <= t (binary search), or -1. */

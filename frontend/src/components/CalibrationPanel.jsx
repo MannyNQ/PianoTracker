@@ -13,20 +13,20 @@ export default function CalibrationPanel({ draft, setDraft, original, editing, s
 
       <button
         onClick={() => setEditing(!editing)}
-        className={`w-full rounded-xl px-4 py-2.5 text-sm font-medium ring-1 transition ${
-          editing ? 'bg-gold text-ink-950 ring-gold' : 'text-ivory ring-white/10 hover:bg-white/5'
+        className={`w-full rounded-lg px-4 py-2.5 text-sm ring-1 transition ${
+          editing ? 'bg-accent text-black ring-accent' : 'text-ivory ring-white/10 hover:bg-white/5'
         }`}
       >
         {editing ? 'Done adjusting' : 'Adjust keyboard on video'}
       </button>
       {editing && (
         <p className="text-xs text-ink-400">
-          Drag the four gold corners onto the keyboard's corners: back edge (where black keys start) and front edge
+          Drag the four orange corners onto the keyboard's corners: back edge (where black keys start) and front edge
           of the white keys. Key outlines update live.
         </p>
       )}
 
-      <div className="space-y-3 rounded-xl border hairline p-3">
+      <div className="space-y-3 rounded-lg border hairline p-3">
         <label className="block">
           <span className="label">Lowest visible white key</span>
           <select
@@ -63,7 +63,7 @@ export default function CalibrationPanel({ draft, setDraft, original, editing, s
             step={0.01}
             value={draft.black_depth}
             onChange={(e) => set({ black_depth: parseFloat(e.target.value) })}
-            className="mt-2 w-full accent-[#e8b45a]"
+            className="mt-2 w-full accent-[#ff6a2c]"
           />
         </label>
         <label className="flex items-center justify-between text-sm">
@@ -71,7 +71,7 @@ export default function CalibrationPanel({ draft, setDraft, original, editing, s
             Mirrored video
             <span className="block text-xs text-ink-400">low notes on the right (selfie camera)</span>
           </span>
-          <input type="checkbox" checked={draft.mirrored} onChange={(e) => set({ mirrored: e.target.checked })} className="h-4 w-4 accent-[#e8b45a]" />
+          <input type="checkbox" checked={draft.mirrored} onChange={(e) => set({ mirrored: e.target.checked })} className="h-4 w-4 accent-[#ff6a2c]" />
         </label>
       </div>
 
@@ -79,14 +79,14 @@ export default function CalibrationPanel({ draft, setDraft, original, editing, s
         <button
           disabled={!dirty || busy}
           onClick={onApply}
-          className="flex-1 rounded-xl bg-gold py-2.5 text-sm font-semibold text-ink-950 hover:bg-gold-soft disabled:bg-ink-700 disabled:text-ink-400"
+          className="btn-primary flex-1 py-2.5 text-sm"
         >
           {busy ? 'Re-scoring…' : 'Apply & re-score'}
         </button>
         <button
           disabled={!dirty || busy}
           onClick={() => setDraft(original)}
-          className="rounded-xl px-3 ring-1 ring-white/10 hover:bg-white/5 disabled:opacity-40"
+          className="btn-ghost px-3"
           title="Revert"
         >
           <RotateCcw className="h-4 w-4" />

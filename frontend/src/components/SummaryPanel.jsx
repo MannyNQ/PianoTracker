@@ -4,7 +4,7 @@ import { FINGER_NAMES, fmtTime, STATUS_COLORS } from '../lib/session';
 
 function Stat({ label, value, unit, sub, color }) {
   return (
-    <div className="rounded-xl border hairline bg-ink-900/50 p-3">
+    <div className="rounded-lg border hairline bg-white/[0.02] p-3">
       <div className="label !text-[9.5px]">{label}</div>
       <div className="tnum mt-1 font-mono text-xl font-semibold" style={color ? { color } : undefined}>
         {value ?? '—'}
@@ -57,14 +57,14 @@ export default function SummaryPanel({ session, onSeek }) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ${
-            audio ? 'bg-good/10 text-good ring-good/30' : 'bg-warn/10 text-warn ring-warn/30'
+          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em] ring-1 ${
+            audio ? 'text-good ring-good/25' : 'text-warn ring-warn/25'
           }`}
         >
           {audio ? <AudioLines className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
           {audio ? 'Audio + video' : 'Video-only estimate'}
         </span>
-        <span className="text-[11px] text-ink-400">
+        <span className="font-mono text-[11px] text-ink-400">
           {fmtTime(s.duration_s)} · {s.notes_played} notes
         </span>
       </div>
@@ -72,7 +72,7 @@ export default function SummaryPanel({ session, onSeek }) {
       {session.warnings.length > 0 && (
         <div className="space-y-2">
           {session.warnings.map((w, i) => (
-            <div key={i} className="flex gap-2 rounded-xl border border-warn/25 bg-warn/5 p-3 text-xs text-amber-100">
+            <div key={i} className="flex gap-2 rounded-lg border border-warn/20 bg-warn/[0.04] p-3 text-xs leading-relaxed text-ink-200">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warn" />
               <span>{w}</span>
             </div>
@@ -81,11 +81,11 @@ export default function SummaryPanel({ session, onSeek }) {
       )}
 
       {sc ? (
-        <div className="rounded-2xl border hairline bg-gradient-to-br from-ink-850 to-ink-900 p-4">
+        <div className="rounded-lg border hairline p-4">
           <div className="flex items-end justify-between">
             <div>
               <div className="label">Note accuracy</div>
-              <div className="tnum font-display text-5xl leading-none">
+              <div className="tnum mt-1 text-5xl font-medium leading-none tracking-[-0.04em]">
                 {sc.accuracy_pct}
                 <span className="text-2xl text-ink-400">%</span>
               </div>
@@ -97,7 +97,7 @@ export default function SummaryPanel({ session, onSeek }) {
               </div>
             </div>
           </div>
-          <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-ink-700">
+          <div className="mt-4 flex h-1 overflow-hidden rounded-full bg-ink-700">
             {[
               ['correct', sc.correct],
               ['wrong', sc.wrong],
@@ -114,7 +114,7 @@ export default function SummaryPanel({ session, onSeek }) {
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed hairline p-4 text-sm text-ink-300">
+        <div className="rounded-lg border border-dashed hairline p-4 text-sm text-ink-300">
           Add a score (PDF, photo, MIDI or MusicXML) in the <span className="text-ivory">Score</span> tab to grade accuracy and timing.
         </div>
       )}
@@ -155,7 +155,7 @@ export default function SummaryPanel({ session, onSeek }) {
               value={s.posture[h].good_pct}
               unit="%"
               sub={s.posture[h].good_pct == null ? 'not visible' : `good · median angle ${s.posture[h].median_angle_deg}°`}
-              color={s.posture[h].good_pct == null ? undefined : s.posture[h].good_pct >= 90 ? STATUS_COLORS.correct : '#e8b45a'}
+              color={s.posture[h].good_pct == null ? undefined : s.posture[h].good_pct >= 90 ? STATUS_COLORS.correct : STATUS_COLORS.missed}
             />
           ))}
           {s.dynamics && (

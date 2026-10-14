@@ -10,7 +10,7 @@ function Toggle({ on, onClick, icon: Icon, label }) {
       onClick={onClick}
       title={label}
       className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition ${
-        on ? 'bg-gold/15 text-gold' : 'text-ink-400 hover:bg-white/5 hover:text-ivory'
+        on ? 'bg-white/10 text-ivory' : 'text-ink-400 hover:bg-white/5 hover:text-ivory'
       }`}
     >
       <Icon className="h-3.5 w-3.5" />
@@ -72,10 +72,10 @@ export default function Transport({ videoRef, t, duration, session, showSkeleton
   const pct = duration ? (100 * t) / duration : 0;
 
   return (
-    <div className="glass flex items-center gap-3 rounded-2xl px-3 py-2">
+    <div className="panel flex items-center gap-3 rounded-xl px-3 py-2">
       <button
         onClick={() => togglePlay(videoRef.current)}
-        className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold text-ink-950 hover:bg-gold-soft"
+        className="btn-primary h-9 w-9"
         aria-label={playing ? 'Pause' : 'Play'}
       >
         {playing ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 translate-x-px fill-current" />}
@@ -92,7 +92,7 @@ export default function Transport({ videoRef, t, duration, session, showSkeleton
 
       <div className="relative flex-1 py-2">
         <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-700" />
-        <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-gold/70" style={{ width: `${pct}%` }} />
+        <div className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-ivory/80" style={{ width: `${pct}%` }} />
         {duration > 0 &&
           session?.posture_episodes.map((e, i) => (
             <div

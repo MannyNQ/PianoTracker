@@ -37,14 +37,14 @@ export default function PianoRoll({ session, t, onSeek }) {
     // pitch lanes
     for (let p = lo; p <= hi; p++) {
       if (!isWhite(p)) {
-        ctx.fillStyle = 'rgba(255,255,255,0.025)';
+        ctx.fillStyle = 'rgba(255,255,255,0.02)';
         ctx.fillRect(0, yOf(p), W, rowH);
       }
       if (p % 12 === 0) {
         ctx.fillStyle = 'rgba(255,255,255,0.06)';
         ctx.fillRect(0, yOf(p) + rowH - 1, W, 1);
-        ctx.fillStyle = 'rgba(200,204,214,0.45)';
-        ctx.font = `${9 * dpr}px ui-monospace, monospace`;
+        ctx.fillStyle = 'rgba(155,155,155,0.7)';
+        ctx.font = `${9 * dpr}px "Geist Mono Variable", ui-monospace, monospace`;
         ctx.fillText(noteName(p), 4 * dpr, yOf(p) + rowH - 3 * dpr);
       }
     }
@@ -80,18 +80,18 @@ export default function PianoRoll({ session, t, onSeek }) {
     // playhead
     const px = xOf(t);
     const g = ctx.createLinearGradient(px - 30 * dpr, 0, px, 0);
-    g.addColorStop(0, 'rgba(232,180,90,0)');
-    g.addColorStop(1, 'rgba(232,180,90,0.12)');
+    g.addColorStop(0, 'rgba(255,106,44,0)');
+    g.addColorStop(1, 'rgba(255,106,44,0.1)');
     ctx.fillStyle = g;
     ctx.fillRect(px - 30 * dpr, 0, 30 * dpr, H);
-    ctx.fillStyle = '#e8b45a';
+    ctx.fillStyle = '#ff6a2c';
     ctx.fillRect(px - dpr / 2, 0, dpr, H);
   }, [session, t, range]);
 
   return (
     <canvas
       ref={canvas}
-      className="h-36 w-full cursor-pointer rounded-xl bg-ink-900/70 ring-1 ring-white/5"
+      className="panel h-36 w-full cursor-pointer rounded-xl"
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const frac = (e.clientX - r.left) / r.width;
