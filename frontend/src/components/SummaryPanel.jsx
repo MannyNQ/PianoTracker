@@ -115,7 +115,7 @@ export default function SummaryPanel({ session, onSeek }) {
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed hairline p-4 text-sm text-ink-300">
-          Add a score (MIDI or MusicXML) in the <span className="text-ivory">Score</span> tab to grade accuracy and timing.
+          Add a score (PDF, photo, MIDI or MusicXML) in the <span className="text-ivory">Score</span> tab to grade accuracy and timing.
         </div>
       )}
 

@@ -1,0 +1,5 @@
+# Sheet-music reader (PDF / image -> MusicXML). Installed in its own venv because
+# homr needs opencv-python-headless<5, which conflicts with MediaPipe's OpenCV:
+#   python3 -m venv omr_venv && omr_venv/bin/pip install -r requirements-omr.txt
+homr==0.7.0
+pymupdf==1.28.2

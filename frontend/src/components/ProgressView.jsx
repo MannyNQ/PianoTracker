@@ -1,14 +1,16 @@
 import { Check, Loader2 } from 'lucide-react';
 
 const STAGES = [
+  ['sheet', 'Reading sheet music'],
   ['keyboard', 'Detecting keyboard'],
   ['tracking', 'Tracking hands'],
   ['audio', 'Transcribing audio'],
   ['scoring', 'Scoring performance'],
 ];
 
-export default function ProgressView({ status, fileName, onCancel }) {
-  const current = STAGES.findIndex(([k]) => k === status?.stage);
+export default function ProgressView({ status, fileName, onCancel, withSheet }) {
+  const stages = withSheet ? STAGES : STAGES.slice(1);
+  const current = stages.findIndex(([k]) => k === status?.stage);
   const pct = Math.round(100 * (status?.progress || 0));
   return (
     <div className="mx-auto flex min-h-full max-w-md flex-col justify-center px-6 py-16">
@@ -26,7 +28,7 @@ export default function ProgressView({ status, fileName, onCancel }) {
           />
         </div>
         <ol className="mt-6 space-y-2.5">
-          {STAGES.map(([key, label], i) => {
+          {stages.map(([key, label], i) => {
             const done = current > i || status?.stage === 'done';
             const active = current === i;
             return (

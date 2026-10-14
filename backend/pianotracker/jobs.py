@@ -20,13 +20,14 @@ import cv2
 from . import audio as audio_mod
 from .analysis import compute_results
 from .keyboard import Calibration, background_frame, detect_keyboard
-from .score import load_score
+from .score import load_score, needs_omr, omr_cache_path
 from .tracking import Tracks, ensure_hand_model, track_video
 
 STAGES = [  # (name, label, share of total progress)
+    ("sheet", "Reading sheet music", 0.10),  # only for PDF/image scores
     ("keyboard", "Detecting keyboard", 0.05),
-    ("tracking", "Tracking hands", 0.60),
-    ("audio", "Transcribing audio", 0.30),
+    ("tracking", "Tracking hands", 0.55),
+    ("audio", "Transcribing audio", 0.25),
     ("scoring", "Scoring performance", 0.05),
 ]
 
@@ -87,22 +88,24 @@ class JobManager:
       score_path = os.path.join(d, "score" + sext)
       with open(score_path, "wb") as out:
         shutil.copyfileobj(score_src, out)
-      try:
-        load_score(score_path)  # fail fast on a bad score file
-      except Exception:
-        shutil.rmtree(d, ignore_errors=True)
-        raise
+      if not needs_omr(score_path):  # sheet music is read in the background job
+        try:
+          load_score(score_path)  # fail fast on a bad score file
+        except Exception:
+          shutil.rmtree(d, ignore_errors=True)
+          raise
     self._set(job_id, status="queued", stage="queued", progress=0.0, message="Waiting to start",
               video_name=os.path.basename(video_name or "video"))
     self._pool.submit(self._run, job_id, video_path, score_path, calibration)
     return job_id
 
   # ---- pipeline
-  def _progress(self, job_id, stage, frac):
+  def _progress(self, job_id, stage, frac, message=None):
     done = 0.0
     for name, label, share in STAGES:
       if name == stage:
-        self._set(job_id, stage=stage, message=label, progress=round(done + share * min(max(frac, 0), 1), 3))
+        self._set(job_id, stage=stage, message=message or label,
+                  progress=round(done + share * min(max(frac, 0), 1), 3))
         return
       done += share
 
@@ -110,8 +113,18 @@ class JobManager:
     d = self.job_dir(job_id)
     try:
       self._set(job_id, status="running")
+      score, score_error = None, None
+      if score_path:
+        if needs_omr(score_path):
+          # Unreadable sheet music shouldn't sink the whole analysis.
+          self._progress(job_id, "sheet", 0)
+          try:
+            score = load_score(score_path, lambda f, m: self._progress(job_id, "sheet", f, m))
+          except ValueError as e:
+            score_error = str(e)
+        else:
+          score = load_score(score_path)
       self._progress(job_id, "keyboard", 0)
-      score = load_score(score_path) if score_path else None
       if calibration is None:
         bg = background_frame(video_path)
         if bg is None:
@@ -133,7 +146,7 @@ class JobManager:
         json.dump({"notes": notes, "pedals": pedals, "info": audio_info}, f)
 
       self._progress(job_id, "scoring", 0)
-      self._finish(job_id, tracks, calibration, notes, pedals, score, audio_info)
+      self._finish(job_id, tracks, calibration, notes, pedals, score, audio_info, score_error)
     except Exception as e:  # report any failure to the UI
       traceback.print_exc()
       self._set(job_id, status="error", error=str(e) or e.__class__.__name__)
@@ -166,9 +179,12 @@ class JobManager:
     info["transcribed"] = True
     return notes, pedals, info
 
-  def _finish(self, job_id, tracks, cal, notes, pedals, score, audio_info):
+  def _finish(self, job_id, tracks, cal, notes, pedals, score, audio_info, score_error=None):
     d = self.job_dir(job_id)
     result = compute_results(tracks, cal, notes, pedals, score, {"audio": audio_info})
+    if score_error:
+      result["warnings"].insert(0, f"Couldn't read the sheet music: {score_error}. "
+                                   "Try a clearer PDF, or upload MIDI/MusicXML in the Score tab.")
     result["job_id"] = job_id
     tmp = os.path.join(d, "result.json.tmp")
     with open(tmp, "w") as f:
@@ -186,7 +202,9 @@ class JobManager:
     prev = self.result(job_id)
     if calibration is None:
       calibration = Calibration.from_dict(prev["calibration"])
-    old_scores = [p for p in os.listdir(d) if p.startswith("score.")]
+    # Score files (plus any cached sheet-music recognition next to them).
+    old_scores = sorted(p for p in os.listdir(d) if p.startswith("score."))
+    old_main = [p for p in old_scores if not p.endswith(".omr.json")]
     if score_src is not None:
       # Validate the new score before replacing the old one.
       sext = os.path.splitext(score_name or "")[1].lower()
@@ -200,12 +218,15 @@ class JobManager:
         raise
       for old in old_scores:
         os.remove(os.path.join(d, old))
-      os.replace(new_path, os.path.join(d, "score" + sext))
+      final = os.path.join(d, "score" + sext)
+      os.replace(new_path, final)
+      if os.path.exists(omr_cache_path(new_path)):
+        os.replace(omr_cache_path(new_path), omr_cache_path(final))
     elif clear_score:
       for old in old_scores:
         os.remove(os.path.join(d, old))
       score = None
     else:
-      score = load_score(os.path.join(d, old_scores[0])) if old_scores else None
+      score = load_score(os.path.join(d, old_main[0])) if old_main else None
     self._finish(job_id, tracks, calibration, a["notes"], a["pedals"], score, a["info"])
     return self.result(job_id)

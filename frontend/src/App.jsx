@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, FileMusic, Keyboard, Plus } from 'lucide-react';
 import { createJob, getHealth, rescore, waitForJob } from './lib/api';
 import { liveStats, prepare } from './lib/session';
+import { isSheetImage } from './lib/formats';
 import UploadView from './components/UploadView';
 import ProgressView from './components/ProgressView';
 import VideoStage from './components/VideoStage';
@@ -55,6 +56,7 @@ export default function App() {
   const [editingCal, setEditingCal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [withSheet, setWithSheet] = useState(false);
   const videoRef = useRef(null);
   const abort = useRef(null);
 
@@ -100,6 +102,7 @@ export default function App() {
   const start = async (video, score) => {
     setError(null);
     setFileName(video.name);
+    setWithSheet(!!score && isSheetImage(score.name));
     setVideoUrl(URL.createObjectURL(video));
     setVideoError(false);
     setStatus(null);
@@ -185,7 +188,7 @@ export default function App() {
 
       <main className="min-h-0 flex-1 overflow-y-auto">
         {phase === 'upload' && <UploadView health={health} onStart={start} error={error} />}
-        {phase === 'processing' && <ProgressView status={status} fileName={fileName} onCancel={reset} />}
+        {phase === 'processing' && <ProgressView status={status} fileName={fileName} onCancel={reset} withSheet={withSheet || status?.stage === 'sheet'} />}
         {phase === 'session' && session && (
           <div className="grid gap-5 px-6 pb-6 lg:grid-cols-[minmax(0,1fr)_380px]">
             <div className="min-w-0 space-y-3">

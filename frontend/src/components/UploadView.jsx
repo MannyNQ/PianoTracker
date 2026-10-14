@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { FileMusic, Film, Sparkles, X } from 'lucide-react';
+import { SCORE_ACCEPT } from '../lib/formats';
 
 function DropZone({ accept, file, onFile, icon: Icon, title, hint, optional }) {
   const input = useRef(null);
@@ -83,12 +84,12 @@ export default function UploadView({ health, onStart, error }) {
           hint="Overhead or high angle, keyboard in frame, with sound"
         />
         <DropZone
-          accept=".mid,.midi,.musicxml,.xml,.mxl"
+          accept={SCORE_ACCEPT}
           file={score}
           onFile={setScore}
           icon={FileMusic}
           title="Score sheet"
-          hint="MIDI or MusicXML: enables accuracy & timing grading"
+          hint="PDF, photo, MIDI or MusicXML: enables accuracy & timing grading"
           optional
         />
         {error && (

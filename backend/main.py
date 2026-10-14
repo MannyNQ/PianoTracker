@@ -14,14 +14,14 @@ from fastapi.responses import FileResponse
 from pianotracker import audio as audio_mod
 from pianotracker.jobs import JobManager
 from pianotracker.keyboard import Calibration
-from pianotracker.score import SUPPORTED as SCORE_EXTS
+from pianotracker.score import SUPPORTED as SCORE_EXTS, omr_available
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 VIDEO_EXTS = (".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi")
 MAX_VIDEO_BYTES = 2 * 1024 ** 3
-MAX_SCORE_BYTES = 20 * 1024 ** 2
+MAX_SCORE_BYTES = 60 * 1024 ** 2  # scanned PDFs can be large
 
 app = FastAPI(title="PianoTracker Pro")
 app.add_middleware(GZipMiddleware, minimum_size=2048)
@@ -69,6 +69,7 @@ def health():
       "ok": True,
       "transcription_ready": audio_mod.transcription_available(ckpt),
       "device": audio_mod.device_name(),
+      "sheet_music_ready": omr_available(),
   }
 
 

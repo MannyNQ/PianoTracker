@@ -1,8 +1,10 @@
-import { useRef } from 'react';
-import { FileMusic, Trash2, Upload } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { FileMusic, ScanLine, Trash2, Upload } from 'lucide-react';
+import { isSheetImage, SCORE_ACCEPT } from '../lib/formats';
 
 export default function ScorePanel({ session, onUpload, onClear, busy }) {
   const input = useRef(null);
+  const [reading, setReading] = useState(false);
   const score = session.score;
   return (
     <div className="space-y-4">
@@ -11,7 +13,14 @@ export default function ScorePanel({ session, onUpload, onClear, busy }) {
           <FileMusic className="h-5 w-5 text-gold" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm">{score.title}</div>
-            <div className="text-xs text-ink-400">{score.notes.length} notes</div>
+            <div className="flex items-center gap-1.5 text-xs text-ink-400">
+              {score.notes.length} notes
+              {score.source === 'omr' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-1.5 py-0.5 text-[10px] text-gold">
+                  <ScanLine className="h-2.5 w-2.5" /> read from sheet music
+                </span>
+              )}
+            </div>
           </div>
           <button onClick={onClear} disabled={busy} className="rounded-lg p-2 text-ink-400 hover:bg-white/5 hover:text-bad" title="Remove score">
             <Trash2 className="h-4 w-4" />
@@ -23,12 +32,15 @@ export default function ScorePanel({ session, onUpload, onClear, busy }) {
       <input
         ref={input}
         type="file"
-        accept=".mid,.midi,.musicxml,.xml,.mxl"
+        accept={SCORE_ACCEPT}
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
           e.target.value = '';
-          if (f) onUpload(f);
+          if (f) {
+            setReading(isSheetImage(f.name));
+            onUpload(f);
+          }
         }}
       />
       <button
@@ -37,13 +49,17 @@ export default function ScorePanel({ session, onUpload, onClear, busy }) {
         className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm ring-1 ring-white/10 hover:bg-white/5 disabled:opacity-50"
       >
         <Upload className="h-4 w-4" />
-        {busy ? 'Scoring…' : score ? 'Replace score' : 'Upload MIDI / MusicXML'}
+        {busy ? (reading ? 'Reading sheet music…' : 'Scoring…') : score ? 'Replace score' : 'Upload score'}
       </button>
       <div className="rounded-xl border hairline p-3 text-xs leading-relaxed text-ink-400">
         <p className="mb-1 text-ink-200">How grading works</p>
         Your notes are aligned to the score note by note, so a partial run-through is fine: only the section you
         reached is graded. Timing is measured against your own tempo, so expressive rubato isn't counted as error.
-        Export MIDI or MusicXML from MuseScore, Flat, Noteflight or Sibelius.
+        <span className="mt-2 block">
+          <span className="text-ink-200">PDF or photo:</span> the notes are read by music recognition (about 10 s
+          per page). Clean, printed scores work best. For exact grading, export MIDI or MusicXML from MuseScore,
+          Flat, Noteflight or Sibelius.
+        </span>
       </div>
     </div>
   );

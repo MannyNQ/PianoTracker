@@ -1,6 +1,7 @@
 # Python
 backend/venv/
 backend/.venv/
+backend/omr_venv/
 __pycache__/
 *.pyc
 

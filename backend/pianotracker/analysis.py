@@ -300,8 +300,15 @@ def compute_results(tr: Tracks, cal: Calibration, audio_notes, pedals, score, so
       for n, r in zip(notes, res["played_results"]):
         n.update({"status": r["status"], "expected_pitch": r["expected_pitch"], "timing_ms": r["timing_ms"]})
       score_summary = res["summary"]
+      if score.get("source") == "omr":
+        warnings.append(f"Score read from sheet music ({score.get('pages', 1)} page"
+                        f"{'s' if score.get('pages', 1) != 1 else ''}) by music recognition. If grading "
+                        "looks off in a passage, the score may have been misread there; MIDI or MusicXML "
+                        "is exact.")
+        warnings.extend(score.get("omr_warnings") or [])
       score_payload = {
           "title": score["title"],
+          "source": score.get("source", "file"),
           "notes": [{"pitch": sn["pitch"], "name": note_name(sn["pitch"]), "beat": sn["beat"],
                      "hand": sn.get("hand"), **sr} for sn, sr in zip(score["notes"], res["score_results"])],
       }

@@ -1,4 +1,8 @@
-"""Load a reference score (MIDI or MusicXML) as a flat list of notes.
+"""Load a reference score as a flat list of notes.
+
+Formats: MIDI and MusicXML directly; PDF and photos/scans (PNG/JPG) of sheet
+music via optical music recognition (homr), which runs in its own environment
+(backend/omr_venv) and produces MusicXML per page.
 
 Each note: {"beat": float (quarter notes from start), "time": float (seconds at
 the score's own tempo), "pitch": int, "duration_beats": float, "hand": "L"|"R"|None}
@@ -6,23 +10,105 @@ the score's own tempo), "pitch": int, "duration_beats": float, "hand": "L"|"R"|N
 
 from __future__ import annotations
 
+import json
 import os
+import shutil
+import subprocess
+import tempfile
 
-SUPPORTED = (".mid", ".midi", ".musicxml", ".xml", ".mxl")
+MIDI_EXTS = (".mid", ".midi")
+XML_EXTS = (".musicxml", ".xml", ".mxl")
+OMR_EXTS = (".pdf", ".png", ".jpg", ".jpeg")
+SUPPORTED = MIDI_EXTS + XML_EXTS + OMR_EXTS
+
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OMR_PYTHON = os.path.join(BACKEND_DIR, "omr_venv", "bin", "python")
+OMR_WORKER = os.path.join(BACKEND_DIR, "pianotracker", "_omr_worker.py")
 
 
-def load_score(path: str) -> dict:
+def needs_omr(path: str) -> bool:
+  return os.path.splitext(path)[1].lower() in OMR_EXTS
+
+
+def omr_cache_path(path: str) -> str:
+  return path + ".omr.json"
+
+
+def omr_available() -> bool:
+  return os.path.exists(OMR_PYTHON)
+
+
+def load_score(path: str, progress=None) -> dict:
+  """progress(frac, message) is called during sheet-music recognition."""
   ext = os.path.splitext(path)[1].lower()
-  if ext in (".mid", ".midi"):
+  info = {"source": "file"}
+  if ext in MIDI_EXTS:
     notes, title = _load_midi(path)
-  elif ext in (".musicxml", ".xml", ".mxl"):
+  elif ext in XML_EXTS:
     notes, title = _load_musicxml(path)
+  elif ext in OMR_EXTS:
+    notes, title, info = _load_omr(path, progress)
   else:
-    raise ValueError(f"Unsupported score format '{ext}'. Use MIDI or MusicXML.")
+    raise ValueError(f"Unsupported score format '{ext}'. Use MIDI, MusicXML, PDF or an image.")
   if not notes:
     raise ValueError("The score contains no notes")
   notes.sort(key=lambda n: (n["beat"], n["pitch"]))
-  return {"title": title or os.path.splitext(os.path.basename(path))[0], "notes": notes}
+  return {"title": title or os.path.splitext(os.path.basename(path))[0], "notes": notes, **info}
+
+
+def _load_omr(path: str, progress=None):
+  """Sheet music PDF/image -> notes, via the homr worker. Cached next to the file."""
+  cache = omr_cache_path(path)
+  if os.path.exists(cache):
+    with open(cache) as f:
+      d = json.load(f)
+    return d["notes"], d["title"], d["info"]
+  if not omr_available():
+    raise ValueError("PDF/image scores need the sheet-music reader. Install it with: "
+                     "cd backend && python3 -m venv omr_venv && omr_venv/bin/pip install -r requirements-omr.txt")
+  work = tempfile.mkdtemp(prefix="omr-")
+  try:
+    proc = subprocess.Popen([OMR_PYTHON, "-I", OMR_WORKER, path, work],
+                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    pages, warnings, error = None, [], None
+    for line in proc.stdout:
+      try:
+        ev = json.loads(line)
+      except ValueError:
+        continue
+      if "error" in ev:
+        error = ev["error"]
+      if "warning" in ev:
+        warnings.append(ev["warning"])
+      if "pages" in ev:
+        pages = ev["pages"]
+      if progress and "progress" in ev:
+        total = ev.get("pages_total")
+        msg = f"Reading sheet music (page {ev['page']} of {total})" if total else "Reading sheet music"
+        progress(float(ev["progress"]), msg)
+    proc.wait()
+    if proc.returncode != 0 or not pages:
+      raise ValueError(error or "Could not read the sheet music")
+    # Stitch pages end to end: each page starts where the previous one ended.
+    notes, title, offset = [], None, 0.0
+    for page in pages:
+      page_notes, page_title = _load_musicxml(page)
+      title = title or page_title
+      if not page_notes:
+        continue
+      for n in page_notes:
+        n["beat"] = round(n["beat"] + offset, 4)
+      notes.extend(page_notes)
+      offset = max(n["beat"] + n["duration_beats"] for n in page_notes)
+    bpm = 120.0
+    for n in notes:
+      n["time"] = round(n["beat"] * 60.0 / bpm, 4)
+    info = {"source": "omr", "pages": len(pages), "omr_warnings": warnings}
+  finally:
+    shutil.rmtree(work, ignore_errors=True)
+  with open(cache, "w") as f:
+    json.dump({"notes": notes, "title": title, "info": info}, f)
+  return notes, title, info
 
 
 def _load_midi(path: str):

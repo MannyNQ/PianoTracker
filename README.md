@@ -2,7 +2,7 @@
 
 Upload a video of yourself playing piano. The app tracks both hands (skeleton, fingertips, wrists),
 detects every note you play, matches each note to the finger that played it, and grades the
-performance against a score sheet (MIDI or MusicXML) in a live HUD over the video.
+performance against a score sheet (PDF, photo, MIDI or MusicXML) in a live HUD over the video.
 
 ## Running it
 
@@ -12,6 +12,14 @@ performance against a score sheet (MIDI or MusicXML) in a live HUD over the vide
 cd backend
 python3 -m venv venv && venv/bin/pip install -r requirements.txt   # first time only
 venv/bin/python main.py                                             # http://127.0.0.1:8000
+```
+
+**Sheet-music reader** (optional, for PDF/photo scores). It lives in its own venv because it needs a
+different OpenCV build than MediaPipe:
+
+```bash
+cd backend
+python3 -m venv omr_venv && omr_venv/bin/pip install -r requirements-omr.txt && omr_venv/bin/homr --init
 ```
 
 On first start it downloads two models into `backend/models/`: the MediaPipe hand model (8 MB) and the
@@ -34,6 +42,7 @@ npm run dev        # http://localhost:5173  (proxies /api to the backend)
 | Keyboard | The median of ~40 frames removes moving hands; white/black keys are found from brightness, and the 2-3 grouping of black keys identifies every C. With audio, the octave (and mirroring) is solved by checking which choice puts fingertips on the keys being heard. Adjustable in the **Keyboard** tab. |
 | Hands | MediaPipe in video mode on every frame, then: duplicate suppression, left/right identity (MediaPipe label + thumb-side geometry + continuity), rejection of collapsed/spiking detections, gap filling up to 0.35 s, and lag-free smoothing. |
 | Notes | **With audio:** ByteDance's piano transcription model gives exact pitches/onsets/velocities; each note is attributed to the fingertip on that key. **Without audio:** a conservative estimate from fingertip motion, clearly labelled. |
+| Sheet music | PDFs are rendered at 300 dpi and read page by page with [homr](https://github.com/liebharc/homr) (optical music recognition), then stitched into one score. The result is cached, so re-scoring doesn't re-read it. An unreadable PDF doesn't stop the analysis; you get a warning instead. Recognition of clean printed scores is very good (203/204 notes on a test Bach minuet); handwritten or dense scores less so, and MIDI/MusicXML are always exact. |
 | Score | Notes are aligned to the score (semi-global sequence alignment + a tempo-aware second pass), so partial run-throughs are fine. Each note is correct / wrong / missed / extra; timing is measured against your own local tempo. |
 | Posture | Hand angle relative to the keys (reliable from above) and wrist sag relative to your own baseline (experimental, 3-D estimate). |
 
