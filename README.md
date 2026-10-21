@@ -1,3 +1,11 @@
+
+
+https://github.com/user-attachments/assets/eee71761-c9da-4f96-9ff5-bd26a5ff1a64
+
+
+
+
+
 # PianoTracker Pro
 
 Upload a video of yourself playing piano. The app tracks both hands (skeleton, fingertips, wrists),
