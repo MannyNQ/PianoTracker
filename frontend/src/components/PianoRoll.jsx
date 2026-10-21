@@ -37,14 +37,14 @@ export default function PianoRoll({ session, t, onSeek }) {
     // pitch lanes
     for (let p = lo; p <= hi; p++) {
       if (!isWhite(p)) {
-        ctx.fillStyle = 'rgba(255,255,255,0.02)';
+        ctx.fillStyle = 'rgba(42,45,47,0.045)';
         ctx.fillRect(0, yOf(p), W, rowH);
       }
       if (p % 12 === 0) {
-        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillStyle = 'rgba(42,45,47,0.14)';
         ctx.fillRect(0, yOf(p) + rowH - 1, W, 1);
-        ctx.fillStyle = 'rgba(155,155,155,0.7)';
-        ctx.font = `${9 * dpr}px "Geist Mono Variable", ui-monospace, monospace`;
+        ctx.fillStyle = '#5e6466';
+        ctx.font = `500 ${10 * dpr}px "Instrument Sans Variable", ui-sans-serif, sans-serif`;
         ctx.fillText(noteName(p), 4 * dpr, yOf(p) + rowH - 3 * dpr);
       }
     }
@@ -55,10 +55,10 @@ export default function PianoRoll({ session, t, onSeek }) {
       const x = xOf(n.onset);
       const w = Math.max(3 * dpr, xOf(end) - x);
       const color = STATUS_COLORS[n.status || 'none'];
-      ctx.globalAlpha = n.onset <= t ? 1 : 0.55;
+      ctx.globalAlpha = n.onset <= t ? 1 : 0.4;
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.roundRect(x, yOf(n.pitch) + 1, w, Math.max(2, rowH - 2), Math.min(3 * dpr, rowH / 2));
+      ctx.roundRect(x, yOf(n.pitch) + 1, w, Math.max(2, rowH - 2), Math.min(1.5 * dpr, rowH / 2));
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -74,24 +74,23 @@ export default function PianoRoll({ session, t, onSeek }) {
     // posture episodes band
     for (const e of session.posture_episodes) {
       if (e.end < t0 || e.start > t + WINDOW_AFTER) continue;
-      ctx.fillStyle = 'rgba(255,107,107,0.55)';
+      ctx.fillStyle = 'rgba(200,32,47,0.45)';
       ctx.fillRect(xOf(e.start), H - band + 3 * dpr, xOf(e.end) - xOf(e.start), band - 6 * dpr);
     }
     // playhead
     const px = xOf(t);
-    const g = ctx.createLinearGradient(px - 30 * dpr, 0, px, 0);
-    g.addColorStop(0, 'rgba(255,106,44,0)');
-    g.addColorStop(1, 'rgba(255,106,44,0.1)');
-    ctx.fillStyle = g;
-    ctx.fillRect(px - 30 * dpr, 0, 30 * dpr, H);
-    ctx.fillStyle = '#ff6a2c';
-    ctx.fillRect(px - dpr / 2, 0, dpr, H);
+    ctx.fillStyle = 'rgba(47,95,168,0.08)';
+    ctx.fillRect(px - 24 * dpr, 0, 24 * dpr, H);
+    ctx.fillStyle = '#2a2d2f';
+    ctx.fillRect(px - dpr, 0, 2 * dpr, H);
   }, [session, t, range]);
 
   return (
     <canvas
       ref={canvas}
-      className="panel h-36 w-full cursor-pointer rounded-xl"
+      className="h-36 w-full cursor-pointer border-b border-rule bg-paper-hi"
+      role="img"
+      aria-label="Piano roll of the notes around the playhead. Click to seek."
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         const frac = (e.clientX - r.left) / r.width;

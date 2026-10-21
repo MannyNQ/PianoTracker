@@ -2,12 +2,13 @@
 
 export const FINGER_NAMES = ['Thumb', 'Index', 'Middle', 'Ring', 'Pinky'];
 
+// Pencil colors on paper. The video overlay uses brighter versions (overlay.js).
 export const STATUS_COLORS = {
-  correct: '#6ee7a8',
-  wrong: '#ff5c5c',
-  extra: '#a78bfa',
-  missed: '#f5b84a',
-  none: '#f2f2f2',
+  correct: '#2f8f5b',
+  wrong: '#c8202f',
+  extra: '#7b4fa8',
+  missed: '#8a8f91',
+  none: '#2a2d2f',
 };
 
 /** Index of the last element with key(el) <= t (binary search), or -1. */

@@ -1,30 +1,33 @@
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
-@import "@fontsource/instrument-serif/400.css";
-@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/bodoni-moda/opsz.css";
+@import "@fontsource-variable/bodoni-moda/opsz-italic.css";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource/nanum-pen-script/latin-400.css";
+@import "@fontsource/noto-music/music-400.css";
 @import "tailwindcss";
 
-/* Minimal dark theme: near-black surfaces, hairline borders, one warm accent. */
+/*
+ * "Teacher's pencil": an engraved score on cool staff paper, written in
+ * graphite. Red pencil marks mistakes and nothing else; blue pencil writes
+ * fingering. The video sits on the page as a dark photographic plate.
+ */
 @theme {
-  --color-ink-950: #000000;
-  --color-ink-900: #0a0a0a;
-  --color-ink-850: #0e0e0e;
-  --color-ink-800: #141414;
-  --color-ink-700: #1d1d1d;
-  --color-ink-600: #2b2b2b;
-  --color-ink-400: #6b6b6b;
-  --color-ink-300: #9b9b9b;
-  --color-ink-200: #d0d0d0;
-  --color-ivory: #f2f2f2;
-  --color-accent: #ff6a2c;
-  --color-accent-soft: #ff9a66;
-  --color-good: #6ee7a8;
-  --color-bad: #ff5c5c;
-  --color-warn: #f5b84a;
-  --color-extra: #a78bfa;
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-display: "Instrument Serif", Georgia, serif;
+  --color-paper: #e9ecea;
+  --color-paper-deep: #dde1de;
+  --color-paper-hi: #f4f6f5;
+  --color-rule: #b9bfbc;
+  --color-rule-soft: #cfd4d1;
+  --color-graphite: #2a2d2f;
+  --color-graphite-soft: #5e6466;
+  --color-graphite-faint: #8a8f91;
+  --color-plate: #1c1f21;
+  --color-red-pencil: #c8202f;
+  --color-blue-pencil: #2f5fa8;
+  --color-good: #2f8f5b;
+  --color-amber: #d08a1c;
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Bodoni Moda Variable", "Didot", Georgia, serif;
+  --font-hand: "Nanum Pen Script", "Bradley Hand", cursive;
+  --font-music: "Noto Music", "Apple Symbols", serif;
 }
 
 html,
@@ -35,46 +38,41 @@ body,
 
 body {
   margin: 0;
-  background: #000;
-  color: var(--color-ivory);
+  background: var(--color-paper);
+  color: var(--color-graphite);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.005em;
 }
 
 ::selection {
-  background: rgba(255, 106, 44, 0.35);
+  background: rgba(47, 95, 168, 0.22);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue-pencil);
+  outline-offset: 2px;
 }
 
 .tnum {
   font-variant-numeric: tabular-nums;
 }
 
-/* Flat panel with a hairline border (replaces the old frosted look). */
-.panel {
-  background: #0a0a0a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.font-display {
+  font-optical-sizing: auto;
 }
 
-/* Translucent layer that sits over video. */
-.overlay-chip {
-  background: rgba(0, 0, 0, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
+/* Small sentence-case caption that names a value. */
+.caption {
+  font-size: 12px;
+  color: var(--color-graphite-soft);
 }
 
-.hairline {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* Small tracked monospace label, as in the references. */
-.label {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-ink-300);
-  font-weight: 500;
+/* A slip of paper laid over the video. */
+.slip {
+  background: rgba(244, 246, 245, 0.94);
+  color: var(--color-graphite);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12), 0 6px 18px -8px rgba(0, 0, 0, 0.55);
 }
 
 .btn-primary {
@@ -82,18 +80,18 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
-  background: var(--color-ivory);
-  color: #000;
+  border-radius: 3px;
+  background: var(--color-graphite);
+  color: var(--color-paper-hi);
   font-weight: 500;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s;
 }
 .btn-primary:hover:not(:disabled) {
-  background: #fff;
+  background: #121415;
 }
 .btn-primary:disabled {
-  background: var(--color-ink-700);
-  color: var(--color-ink-400);
+  background: var(--color-rule-soft);
+  color: var(--color-graphite-faint);
   cursor: not-allowed;
 }
 
@@ -102,18 +100,17 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.02);
-  color: var(--color-ivory);
+  border-radius: 3px;
+  border: 1px solid var(--color-rule);
+  color: var(--color-graphite);
   transition: background 0.15s, border-color 0.15s;
 }
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--color-paper-deep);
+  border-color: var(--color-graphite-faint);
 }
 .btn-ghost:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -126,44 +123,60 @@ input[type="range"].scrub {
 }
 input[type="range"].scrub::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--color-ivory);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
-  margin-top: -4px;
+  width: 3px;
+  height: 18px;
+  border-radius: 1px;
+  background: var(--color-graphite);
+  margin-top: -8px;
+}
+input[type="range"].scrub::-moz-range-thumb {
+  width: 3px;
+  height: 18px;
+  border: 0;
+  border-radius: 1px;
+  background: var(--color-graphite);
 }
 input[type="range"].scrub::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 999px;
+  height: 2px;
   background: transparent;
 }
 
 select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, #9b9b9b 50%),
-    linear-gradient(135deg, #9b9b9b 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, #5e6466 50%),
+    linear-gradient(135deg, #5e6466 50%, transparent 50%);
   background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
 }
 
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* ---- Landing hero: the marked-up minuet ---- */
+.minuet .note {
+  transition: fill 0.25s ease, stroke 0.25s ease;
 }
-.rise {
-  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+.minuet .finger,
+.minuet .remark {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.minuet .finger.on,
+.minuet .remark.on {
+  opacity: 1;
+}
+.minuet .pencil-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.5, 0, 0.3, 1);
+}
+.minuet .pencil-line.on {
+  stroke-dashoffset: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rise {
-    animation: none;
+  .minuet .note,
+  .minuet .finger,
+  .minuet .remark,
+  .minuet .pencil-line {
+    transition: none;
   }
 }

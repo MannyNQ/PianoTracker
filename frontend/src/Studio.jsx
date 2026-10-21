@@ -17,14 +17,14 @@ import ScorePanel from './components/ScorePanel';
 function EngineBadge({ health }) {
   const state = !health ? 'checking' : !health.ok ? 'offline' : health.transcription_ready ? 'ready' : 'partial';
   const meta = {
-    checking: ['bg-ink-400', 'Connecting…'],
-    offline: ['bg-bad', 'Engine offline'],
-    ready: ['bg-good', `Engine ready · ${health?.device?.toUpperCase()}`],
-    partial: ['bg-warn', 'Engine ready · audio model downloading'],
+    checking: ['bg-graphite-faint', 'Connecting to the engine…'],
+    offline: ['bg-red-pencil', 'Engine offline. Start the backend.'],
+    ready: ['bg-good', `Engine ready on ${health?.device?.toUpperCase()}`],
+    partial: ['bg-amber', 'Engine ready, audio model still downloading'],
   }[state];
   return (
-    <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-400">
-      <span className={`h-1.5 w-1.5 rounded-full ${meta[0]}`} />
+    <div className="flex items-center gap-2 text-[13px] text-graphite-soft" role="status">
+      <span className={`h-2 w-2 shrink-0 rounded-full ${meta[0]}`} />
       {meta[1]}
     </div>
   );
@@ -170,7 +170,7 @@ export default function Studio({ onHome }) {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between border-b hairline px-6 py-4">
+      <header className="flex items-center justify-between gap-4 border-b border-rule px-4 py-4 sm:px-6">
         <div className="flex items-center gap-4">
           <Wordmark
             size="text-xl"
@@ -179,14 +179,12 @@ export default function Studio({ onHome }) {
               onHome();
             }}
           />
-          <span className="hidden font-mono text-[10.5px] uppercase tracking-[0.12em] text-ink-400 sm:inline">
-            / Studio
-          </span>
+          <span className="hidden font-display text-lg italic text-graphite-soft sm:inline">Studio</span>
         </div>
         <div className="flex items-center gap-5">
           <EngineBadge health={health} />
           {phase === 'session' && (
-            <button onClick={reset} className="btn-ghost px-3 py-1.5 text-xs">
+            <button onClick={reset} className="btn-ghost shrink-0 px-3 py-1.5 text-[13px]">
               <Plus className="h-3.5 w-3.5" /> New session
             </button>
           )}
@@ -197,7 +195,7 @@ export default function Studio({ onHome }) {
         {phase === 'upload' && <UploadView health={health} onStart={start} error={error} />}
         {phase === 'processing' && <ProgressView status={status} fileName={fileName} onCancel={reset} withSheet={withSheet || status?.stage === 'sheet'} />}
         {phase === 'session' && session && (
-          <div className="grid gap-5 p-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_380px]">
             <div className="min-w-0 space-y-3">
               <VideoStage
                 src={videoUrl}
@@ -217,7 +215,7 @@ export default function Studio({ onHome }) {
               >
                 {!editingCal && stats && <LiveHud session={session} t={t} stats={stats} cal={calDraft} />}
                 {videoError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/90 p-8 text-center text-sm text-ink-200">
+                  <div className="absolute inset-0 flex items-center justify-center bg-plate/95 p-8 text-center text-sm leading-relaxed text-paper">
                     Your browser can't play this video format (often HEVC/H.265 from iPhones). Open the app in
                     Safari, or export the video as H.264 MP4. The analysis itself is complete.
                   </div>
@@ -236,14 +234,16 @@ export default function Studio({ onHome }) {
               <PianoRoll session={session} t={t} onSeek={seek} />
             </div>
 
-            <aside className="panel h-fit rounded-xl p-5 lg:sticky lg:top-6">
-              <nav className="mb-5 flex gap-1 rounded-lg border hairline p-1">
+            <aside className="h-fit border-t border-graphite pt-1 lg:sticky lg:top-6 lg:border-l lg:border-t-0 lg:border-rule lg:pl-6 lg:pt-0">
+              <nav className="mb-5 flex gap-5 border-b border-rule" role="tablist">
                 {TABS.map(([key, label, Icon]) => (
                   <button
                     key={key}
                     onClick={() => setTab(key)}
-                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition ${
-                      tab === key ? 'bg-ink-700 text-ivory' : 'text-ink-400 hover:text-ivory'
+                    role="tab"
+                    aria-selected={tab === key}
+                    className={`-mb-px flex items-center gap-1.5 border-b-2 py-2.5 text-sm font-medium transition-colors ${
+                      tab === key ? 'border-graphite text-graphite' : 'border-transparent text-graphite-faint hover:text-graphite'
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -251,7 +251,11 @@ export default function Studio({ onHome }) {
                   </button>
                 ))}
               </nav>
-              {error && <div className="mb-4 rounded-lg border border-bad/30 bg-bad/5 p-3 text-xs text-red-200">{error}</div>}
+              {error && (
+                <p role="alert" className="mb-4 border-l-2 border-red-pencil pl-3 text-sm text-red-pencil">
+                  {error}
+                </p>
+              )}
               {tab === 'summary' && <SummaryPanel session={session} onSeek={seek} />}
               {tab === 'calibrate' && (
                 <CalibrationPanel
