@@ -1,0 +1,4 @@
+# Verification scratch: instance state, copied fixtures, proof artifacts.
+.run/
+fixtures/
+evidence/
